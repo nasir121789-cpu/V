@@ -201,8 +201,7 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 <div class="page" id="page-watch">
   <div class="player-wrap"><video id="mainPlayer" controls playsinline></video></div>
   <div class="watch-info">
-    <div class="watch-title" id="watchTitle"></div>
-    <div class="card-sub" id="watchMeta"></div>
+    <div class="card-sub" id="watchMeta" style="font-size:14px;"></div>
     <div class="watch-meta-row" style="margin-top:12px;">
       <div class="watch-actions">
         <button class="action-pill ripple" id="likeBtn"><i class="fa-regular fa-heart"></i><span id="likeCount">0</span></button>
@@ -211,7 +210,7 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
     </div>
     <div class="channel-row">
       <div class="avatar" id="channelAvatar">U</div>
-      <div><div style="font-weight:600; font-size:14px;" id="channelName"></div><div class="card-sub" id="channelDesc"></div></div>
+      <div><div style="font-weight:600; font-size:14px;" id="channelName"></div></div>
     </div>
     <div class="comments-section">
       <div class="related-title">Comments</div>
@@ -261,8 +260,6 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
     <div id="dropText">Tap to select a video</div>
     <input type="file" id="fileInput" accept="video/*" style="display:none;">
   </div>
-  <div class="field"><label>Title</label><input type="text" id="uploadTitle" placeholder="Give your video a title"></div>
-  <div class="field"><label>Description</label><input type="text" id="uploadDesc" placeholder="Tell viewers about your video"></div>
   <div class="progress-bar hidden" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
   <div class="card-sub" id="uploadStatus" style="margin-bottom:12px;"></div>
   <button class="btn-grad ripple" id="submitUploadBtn">Upload</button>
@@ -281,13 +278,13 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
    Replace with your own Firebase project credentials.
    ============================================================ */
 const firebaseConfig = {
-  apiKey: "AIzaSyAzJJmgHTCvqxkhC1UGocJsLUzPmu3pkUw",
-  authDomain: "vvvici-95046.firebaseapp.com",
-  databaseURL: "https://vvvici-95046-default-rtdb.firebaseio.com",
-  projectId: "vvvici-95046",
-  storageBucket: "vvvici-95046.firebasestorage.app",
-  messagingSenderId: "555581324308",
-  appId: "1:555581324308:web:fc3b9482e5fa511b28bb01"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
@@ -490,8 +487,8 @@ function renderCard(v){
     <div class="card-body">
       <div class="avatar">${initials(v.username)}</div>
       <div class="card-meta">
-        <div class="card-title">${escapeHtml(v.title||'Untitled')}</div>
-        <div class="card-sub">${escapeHtml(v.username||'user')} • ${fmtNum(v.views)} views • ${timeAgo(v.createdAt)}</div>
+        <div class="card-title">${escapeHtml(v.username||'user')}</div>
+        <div class="card-sub">${fmtNum(v.views)} views • ${timeAgo(v.createdAt)}</div>
       </div>
     </div>`;
   card.addEventListener('click', ()=> openVideo(v.id));
@@ -543,11 +540,9 @@ async function actuallyOpenVideo(id){
   const player = document.getElementById('mainPlayer');
   player.src = v.url;
   player.load();
-  document.getElementById('watchTitle').textContent = v.title || 'Untitled';
   document.getElementById('watchMeta').textContent = `${fmtNum(v.views)} views • ${timeAgo(v.createdAt)}`;
   document.getElementById('channelAvatar').textContent = initials(v.username);
   document.getElementById('channelName').textContent = v.username || 'user';
-  document.getElementById('channelDesc').textContent = v.description || '';
   // increment views
   db.ref('videos/'+id+'/views').transaction(cur=> (cur||0)+1);
   if(v.uploaderId){ db.ref('users/'+v.uploaderId+'/totalViews').transaction(cur=>(cur||0)+1); }
@@ -762,9 +757,6 @@ async function uploadToArchive(file){
 
 document.getElementById('submitUploadBtn').addEventListener('click', async ()=>{
   if(!selectedFile){ toast('Please select a video file', true); return; }
-  const title = document.getElementById('uploadTitle').value.trim();
-  const desc = document.getElementById('uploadDesc').value.trim();
-  if(!title){ toast('Please enter a title', true); return; }
   const maxMB = settings.maxUploadMB || 500;
   if(selectedFile.size/1024/1024 > maxMB){ toast(`File exceeds the ${maxMB}MB limit`, true); return; }
 
@@ -792,7 +784,7 @@ document.getElementById('submitUploadBtn').addEventListener('click', async ()=>{
 
     const newRef = db.ref('videos').push();
     await newRef.set({
-      title, description: desc, url, thumbnail,
+      url, thumbnail,
       uploaderId: uid, username: currentUserData.username,
       views: 0, createdAt: Date.now(),
       status: settings.autoApprove === false ? 'pending' : 'approved',
@@ -806,8 +798,6 @@ document.getElementById('submitUploadBtn').addEventListener('click', async ()=>{
     setTimeout(()=>{
       closeSheet();
       selectedFile = null;
-      document.getElementById('uploadTitle').value = '';
-      document.getElementById('uploadDesc').value = '';
       document.getElementById('dropText').textContent = 'Tap to select a video';
       progressBar.classList.add('hidden');
       progressFill.style.width = '0%';
