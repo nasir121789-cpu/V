@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <!-- Telegram Mini App SDK -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<!-- Monetag Rewarded Interstitial SDK (zone 11534532) -->
+<script src='//libtl.com/sdk.js' data-zone='11534532' data-sdk='show_11534532'></script>
 <!-- Firebase (compat SDK for simplicity in a single-file app) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -143,13 +145,6 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 .action-pill{display:flex; align-items:center; gap:6px; padding:9px 15px; border-radius:20px; background:var(--glass); border:1px solid var(--border); font-size:13px; font-weight:500;}
 .action-pill.liked{color:var(--accent); border-color:var(--accent);}
 .channel-row{display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); margin-bottom:14px;}
-.comments-section{padding:0 2px;}
-.comment{display:flex; gap:10px; margin-bottom:16px;}
-.comment-body{flex:1;}
-.comment-user{font-size:12.5px; font-weight:600;}
-.comment-text{font-size:13.5px; color:var(--text-dim); margin-top:2px;}
-.comment-input-row{display:flex; gap:10px; align-items:center; padding:12px 0;}
-.comment-input-row input{flex:1; padding:12px 14px; border-radius:20px; border:1px solid var(--border); background:var(--glass); color:var(--text); font-family:inherit; font-size:13.5px;}
 .related-title{font-size:14px; font-weight:600; margin:18px 0 6px; padding:0 2px;}
 
 /* ===================== PROFILE ===================== */
@@ -163,13 +158,6 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 .stat-label{font-size:11px; color:var(--text-dim); margin-top:2px;}
 .section-label{padding:14px 16px 4px; font-size:14px; font-weight:700;}
 .logout-btn{margin:20px 16px; padding:13px; border-radius:var(--radius-sm); border:1px solid var(--accent); color:var(--accent); text-align:center; font-weight:600;}
-
-/* ===================== AD MODAL ===================== */
-.ad-modal{position:fixed; inset:0; background:#000; z-index:400; display:none; flex-direction:column; align-items:center; justify-content:center; color:#fff; text-align:center; padding:24px;}
-.ad-modal.show{display:flex;}
-.ad-modal .spinner{width:44px; height:44px; border:4px solid rgba(255,255,255,0.2); border-top-color:var(--grad-b); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:18px;}
-@keyframes spin{to{transform:rotate(360deg);}}
-#ad-slot{width:100%; max-width:400px; min-height:220px; margin-bottom:16px; background:#111; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#666; font-size:13px;}
 
 .empty-state{text-align:center; padding:60px 24px; color:var(--text-dim);}
 .empty-state i{font-size:38px; margin-bottom:12px; opacity:.6;}
@@ -211,15 +199,6 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
     <div class="channel-row">
       <div class="avatar" id="channelAvatar">U</div>
       <div><div style="font-weight:600; font-size:14px;" id="channelName"></div></div>
-    </div>
-    <div class="comments-section">
-      <div class="related-title">Comments</div>
-      <div class="comment-input-row">
-        <div class="avatar" style="width:32px;height:32px;font-size:12px;" id="commentAvatar">U</div>
-        <input type="text" id="commentInput" placeholder="Add a comment...">
-        <button class="icon-btn ripple" id="commentSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
-      </div>
-      <div id="commentsList"></div>
     </div>
     <div class="related-title">Up next</div>
     <div class="feed" id="relatedFeed"></div>
@@ -263,13 +242,6 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
   <div class="progress-bar hidden" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
   <div class="card-sub" id="uploadStatus" style="margin-bottom:12px;"></div>
   <button class="btn-grad ripple" id="submitUploadBtn">Upload</button>
-</div>
-
-<!-- ===================== REWARDED AD MODAL ===================== -->
-<div class="ad-modal" id="adModal">
-  <div class="spinner"></div>
-  <div id="ad-slot">Ad space</div>
-  <div style="font-size:13px; color:#999;" id="adCountdown">Loading ad...</div>
 </div>
 
 <script>
@@ -431,12 +403,24 @@ setupIdentity();
    APP INIT — SETTINGS + FEED
    ============================================================ */
 let appInited = false;
+let deepLinkHandled = false;
 function initApp(){
   if(appInited) return;
   appInited = true;
   db.ref('settings').on('value', snap=>{
     settings = snap.val() || {};
     document.getElementById('uploadsDisabledBanner').classList.toggle('hidden', settings.uploadsEnabled !== false);
+    if(!deepLinkHandled){
+      deepLinkHandled = true;
+      // If this app was opened via a shared link (Telegram bot startapp
+      // parameter), jump straight to that video once settings (incl.
+      // whether ads are enabled) have loaded.
+      try{
+        const startParam = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe
+          ? window.Telegram.WebApp.initDataUnsafe.start_param : null;
+        if(startParam) openVideo(startParam);
+      }catch(e){}
+    }
   });
   loadFeed();
   window.addEventListener('scroll', ()=>{
@@ -498,32 +482,24 @@ function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s||
 
 /* ============================================================
    REWARDED AD FLOW
+   Uses Monetag's rewarded interstitial SDK (zone 11534532, loaded
+   in <head>). show_11534532() returns a Promise that resolves once
+   the person has watched the ad. If ads are turned off by the admin,
+   or the ad SDK fails to load/serve an ad, the video still opens
+   (fail-open) so people are never stuck on a blank screen.
    ============================================================ */
 function playAdThenOpen(id){
   if(!settings.adsEnabled){ actuallyOpenVideo(id); return; }
-  const modal = document.getElementById('adModal');
-  const slot = document.getElementById('ad-slot');
-  const countdown = document.getElementById('adCountdown');
-  modal.classList.add('show');
-  slot.innerHTML = '';
-  if(settings.monetagCode){
-    // Inject admin-provided Monetag ad code/script into the slot
-    try{ slot.innerHTML = settings.monetagCode; }catch(e){}
-  } else {
-    slot.textContent = 'Rewarded ad';
-  }
-  let t = 5;
-  countdown.textContent = `Ad ends in ${t}s`;
-  const iv = setInterval(()=>{
-    t--;
-    if(t<=0){
-      clearInterval(iv);
-      modal.classList.remove('show');
+  if(typeof show_11534532 === 'function'){
+    show_11534532().then(()=>{
       actuallyOpenVideo(id);
-    } else {
-      countdown.textContent = `Ad ends in ${t}s`;
-    }
-  },1000);
+    }).catch(()=>{
+      actuallyOpenVideo(id);
+    });
+  } else {
+    // SDK not loaded (e.g. blocked by an ad blocker) — don't block the video.
+    actuallyOpenVideo(id);
+  }
 }
 
 /* ============================================================
@@ -555,8 +531,6 @@ async function actuallyOpenVideo(id){
   document.getElementById('likeBtn').classList.toggle('liked', !!liked);
   document.getElementById('likeBtn').innerHTML = `<i class="fa-${liked?'solid':'regular'} fa-heart"></i><span id="likeCount">${fmtNum(likeCount)}</span>`;
   document.getElementById('likeBtn').onclick = ()=> toggleLike(id);
-  // comments
-  loadComments(id);
   // related
   await ensureVideosCached();
   const related = feedCache.filter(x=>x.id!==id).slice(0,10);
@@ -584,42 +558,18 @@ async function toggleLike(id){
   btn.querySelector('i').className = likes[uid] ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
 }
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
-  const url = window.location.href.split('#')[0] + '#video=' + activeVideoId;
+  // If the admin has set a Telegram bot username, share a deep link that opens
+  // the bot's Mini App directly to this video (via the startapp parameter).
+  // Otherwise fall back to a plain page link.
+  const url = settings.telegramBotUsername
+    ? `https://t.me/${settings.telegramBotUsername}?startapp=${activeVideoId}`
+    : (window.location.href.split('#')[0] + '#video=' + activeVideoId);
   if(navigator.share){
     try{ await navigator.share({title:'Check out this video', url}); }catch(e){}
   } else {
     try{ await navigator.clipboard.writeText(url); toast('Link copied to clipboard'); }catch(e){ toast(url); }
   }
 });
-function loadComments(id){
-  const list = document.getElementById('commentsList');
-  list.innerHTML = '';
-  db.ref('comments/'+id).orderByChild('createdAt').on('value', snap=>{
-    list.innerHTML = '';
-    const arr = [];
-    snap.forEach(c=> arr.push(c.val()));
-    arr.reverse().forEach(c=>{
-      const el = document.createElement('div');
-      el.className = 'comment';
-      el.innerHTML = `<div class="avatar" style="width:32px;height:32px;font-size:12px;">${initials(c.username)}</div>
-        <div class="comment-body"><div class="comment-user">${escapeHtml(c.username)}</div><div class="comment-text">${escapeHtml(c.text)}</div></div>`;
-      list.appendChild(el);
-    });
-    if(arr.length===0) list.innerHTML = '<div class="card-sub" style="padding:10px 0;">No comments yet. Be the first!</div>';
-  });
-}
-document.getElementById('commentSendBtn').addEventListener('click', sendComment);
-document.getElementById('commentInput').addEventListener('keydown', e=>{ if(e.key==='Enter') sendComment(); });
-async function sendComment(){
-  if(!uid){ toast('Still connecting, try again in a moment', true); return; }
-  const input = document.getElementById('commentInput');
-  const text = input.value.trim();
-  if(!text) return;
-  await db.ref('comments/'+activeVideoId).push({
-    text, username: currentUserData.username, uid: uid, createdAt: Date.now()
-  });
-  input.value = '';
-}
 
 /* ============================================================
    PROFILE
@@ -629,7 +579,6 @@ async function loadProfile(){
   document.getElementById('profAvatar').textContent = initials(currentUserData.username);
   document.getElementById('profName').textContent = currentUserData.username;
   document.getElementById('profEmail').textContent = currentUserData.telegramId ? ('Telegram ID: ' + currentUserData.telegramId) : uid;
-  document.getElementById('commentAvatar').textContent = initials(currentUserData.username);
   const snap = await db.ref('videos').orderByChild('uploaderId').equalTo(uid).once('value');
   const vids = [];
   let totalViews = 0, totalLikesCount = 0;
@@ -814,4 +763,4 @@ document.getElementById('submitUploadBtn').addEventListener('click', async ()=>{
 });
 </script>
 </body>
-</html>
+    </html>
