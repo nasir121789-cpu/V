@@ -188,12 +188,11 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 <div class="overlay" id="authOverlay">
   <div class="auth-logo"><span class="grad">StreamHub</span></div>
   <div class="auth-sub" id="authSub" style="margin-bottom:0;">Connecting your Telegram account...</div>
-  <div style="display:flex; justify-content:center; margin-top:22px;">
+  <div id="authSpinner" style="display:flex; justify-content:center; margin-top:22px;">
     <div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--grad-b);border-radius:50%;animation:spin 0.9s linear infinite;"></div>
   </div>
-  <div class="card-sub" id="authFallbackMsg" style="text-align:center; margin-top:20px; display:none;">
-    wait and see 
-  </div>
+  <div class="card-sub" id="authFallbackMsg" style="text-align:center; margin-top:20px; display:none;"></div>
+  <button class="btn-grad ripple" id="authRetryBtn" style="display:none; margin-top:16px;">Retry</button>
 </div>
 <style>@keyframes spin{to{transform:rotate(360deg);}}</style>
 
@@ -296,13 +295,13 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
    Replace with your own Firebase project credentials.
    ============================================================ */
 const firebaseConfig = {
-  apiKey: "AIzaSyAzJJmgHTCvqxkhC1UGocJsLUzPmu3pkUw",
-  authDomain: "vvvici-95046.firebaseapp.com",
-  databaseURL: "https://vvvici-95046-default-rtdb.firebaseio.com",
-  projectId: "vvvici-95046",
-  storageBucket: "vvvici-95046.firebasestorage.app",
-  messagingSenderId: "555581324308",
-  appId: "1:555581324308:web:fc3b9482e5fa511b28bb01"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
@@ -414,39 +413,85 @@ function localGuestId(){
   return gid;
 }
 
-auth.onAuthStateChanged(async user=>{
-  if(user){
-    currentUser = user;
-    tgUser = getTelegramUser();
-    const usingTelegram = !!tgUser;
-    uid = usingTelegram ? ('tg_' + tgUser.id) : localGuestId();
-    const displayName = usingTelegram
-      ? (tgUser.username || [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') || ('User' + tgUser.id))
-      : ('Guest' + uid.slice(-4));
+function getTelegramUser(){
+  try{
+    if(window.Telegram && window.Telegram.WebApp){
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+      return window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user
+        ? window.Telegram.WebApp.initDataUnsafe.user : null;
+    }
+  }catch(e){}
+  return null;
+}
+function localGuestId(){
+  // Fallback identity for testing outside Telegram (e.g. a normal browser tab).
+  let gid = localStorage.getItem('streamhub_guest_id');
+  if(!gid){ gid = 'guest_' + Math.random().toString(36).slice(2,10); localStorage.setItem('streamhub_guest_id', gid); }
+  return gid;
+}
+function showAuthError(msg){
+  console.error('StreamHub login error:', msg);
+  document.getElementById('authSpinner').style.display = 'none';
+  document.getElementById('authSub').textContent = 'Could not sign you in.';
+  document.getElementById('authFallbackMsg').style.display = 'block';
+  document.getElementById('authFallbackMsg').textContent = msg;
+  document.getElementById('authRetryBtn').style.display = 'block';
+}
+document.getElementById('authRetryBtn').addEventListener('click', ()=> window.location.reload());
 
-    const snap = await db.ref('users/'+uid).once('value');
-    currentUserData = snap.val();
-    if(currentUserData && currentUserData.banned){
-      document.getElementById('authSub').textContent = 'Your account has been banned by an admin.';
-      return;
-    }
-    if(!currentUserData){
-      currentUserData = {
-        username: displayName, telegramId: usingTelegram ? tgUser.id : null,
-        createdAt: Date.now(), banned:false, role:'user',
-        totalVideos:0, totalViews:0, totalLikes:0
-      };
-      await db.ref('users/'+uid).set(currentUserData);
-    }
-    document.getElementById('authOverlay').classList.add('hidden');
-    initApp();
+// Watchdog: if login hasn't finished within 10s, stop spinning forever and show a retry option.
+let loginSettled = false;
+setTimeout(()=>{
+  if(!loginSettled){
+    showAuthError('This is taking longer than expected. Check your Firebase config (API key, databaseURL), make sure Anonymous sign-in is enabled in Firebase Authentication, and that your Realtime Database rules allow access.');
+  }
+}, 10000);
+
+async function completeLogin(user){
+  currentUser = user;
+  tgUser = getTelegramUser();
+  const usingTelegram = !!tgUser;
+  uid = usingTelegram ? ('tg_' + tgUser.id) : localGuestId();
+  const displayName = usingTelegram
+    ? (tgUser.username || [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') || ('User' + tgUser.id))
+    : ('Guest' + uid.slice(-4));
+
+  const snap = await db.ref('users/'+uid).once('value');
+  currentUserData = snap.val();
+  if(currentUserData && currentUserData.banned){
+    loginSettled = true;
+    document.getElementById('authSpinner').style.display = 'none';
+    document.getElementById('authSub').textContent = 'Your account has been banned by an admin.';
+    return;
+  }
+  if(!currentUserData){
+    currentUserData = {
+      username: displayName, telegramId: usingTelegram ? tgUser.id : null,
+      createdAt: Date.now(), banned:false, role:'user',
+      totalVideos:0, totalViews:0, totalLikes:0
+    };
+    await db.ref('users/'+uid).set(currentUserData);
+  }
+  loginSettled = true;
+  document.getElementById('authOverlay').classList.add('hidden');
+  initApp();
+}
+
+auth.onAuthStateChanged(user=>{
+  if(user){
+    completeLogin(user).catch(err=>{
+      // Most common cause here: Realtime Database rules reject reads/writes,
+      // or the databaseURL in firebaseConfig is wrong/missing.
+      showAuthError('Signed in, but could not load your profile from the database: ' + err.message);
+    });
   } else {
     currentUser = null; uid = null;
     // Silently establish an anonymous Firebase session so DB rules pass; no UI shown to the user.
     auth.signInAnonymously().catch(err=>{
-      document.getElementById('authFallbackMsg').style.display = 'block';
-      document.getElementById('authSub').textContent = 'Connection failed.';
-      toast(err.message, true);
+      // Most common cause here: Anonymous sign-in is not enabled in Firebase Authentication,
+      // or the firebaseConfig values (apiKey/authDomain) are still placeholders.
+      showAuthError(err.message);
     });
   }
 });
