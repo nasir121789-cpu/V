@@ -673,25 +673,32 @@ async function uploadToTelegram(file){
   const fileData = await fileRes.json();
   return `https://api.telegram.org/file/bot${token}/${fileData.result.file_path}`;
 }
+
 async function uploadToCatbox(file){
   const form = new FormData();
   form.append('reqtype', 'fileupload');
   if(settings.catboxUserHash) form.append('userhash', settings.catboxUserHash);
   form.append('fileToUpload', file);
-  const res = await fetch('https://catbox.moe/user/api.php', { method:'POST', body: form });
+
+  // ব্রাউজারের CORS ব্লক এড়াতে Public CORS Proxy ব্যবহার করা হয়েছে
+  const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://catbox.moe/user/api.php');
+
+  const res = await fetch(proxyUrl, { method:'POST', body: form });
   const text = await res.text();
   if(!text.startsWith('http')) throw new Error('Catbox upload failed: ' + text);
   return text.trim();
 }
+
 async function uploadToArchive(file){
-  // Archive.org's S3-like API generally requires an auth header and may be blocked by
-  // browser CORS policy when called directly from client-side JS. A small server-side
-  // relay is recommended for production use. This performs a best-effort direct call.
   const key = settings.archiveAccessKey, secret = settings.archiveSecretKey;
   if(!key || !secret) throw new Error('Archive.org credentials are not configured by the admin.');
   const identifier = 'streamhub-' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
   const uploadUrl = `https://s3.us.archive.org/${identifier}/${encodeURIComponent(file.name)}`;
-  const res = await fetch(uploadUrl, {
+  
+  // CORS ব্লক বাইপাস করতে Proxy ব্যবহার করা হয়েছে
+  const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(uploadUrl);
+
+  const res = await fetch(proxyUrl, {
     method: 'PUT',
     headers: {
       'authorization': `LOW ${key}:${secret}`,
@@ -763,4 +770,4 @@ document.getElementById('submitUploadBtn').addEventListener('click', async ()=>{
 });
 </script>
 </body>
-    </html>
+  </html>
