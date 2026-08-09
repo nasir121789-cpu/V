@@ -3,6 +3,10 @@
     {
       "source": "/api/catbox",
       "destination": "https://catbox.moe/user/api.php"
+    },
+    {
+      "source": "/api/archive/:path*",
+      "destination": "https://s3.us.archive.org/:path*"
     }
   ]
 }
