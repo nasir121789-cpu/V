@@ -9,17 +9,17 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <!-- Telegram Mini App SDK -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<!-- Monetag Rewarded Interstitial SDK (zone 11534532) -->
+<!-- Monetag Rewarded Interstitial SDK -->
 <script src='//libtl.com/sdk.js' data-zone='11534532' data-sdk='show_11534532'></script>
-<!-- Firebase (compat SDK for simplicity in a single-file app) -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <style>
 /* ===================== DESIGN TOKENS ===================== */
 :root{
   --grad-a:#6C5CE7; --grad-b:#00D2FF;
   --accent:#FF4B6E;
+  --good:#2ED573;
   --bg-dark:#0B0B14; --surface-dark:#14141F; --glass-dark:rgba(255,255,255,0.06);
   --bg-light:#F5F6FB; --surface-light:#FFFFFF; --glass-light:rgba(255,255,255,0.7);
   --text-dark:#F2F2F7; --text-dim-dark:#9A9AB0;
@@ -51,10 +51,10 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 .brand{display:flex; align-items:center; gap:8px; font-weight:800; font-size:20px;}
 .brand .dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--grad-a),var(--grad-b));}
 .brand span.grad{background:linear-gradient(135deg,var(--grad-a),var(--grad-b)); -webkit-background-clip:text; background-clip:text; color:transparent;}
-.top-actions{display:flex; align-items:center; gap:14px; font-size:18px;}
+.top-actions{display:flex; align-items:center; gap:10px; font-size:18px;}
 .icon-btn{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--glass);border:1px solid var(--border); position:relative;}
 
-/* ===================== PAGES / TRANSITIONS ===================== */
+/* ===================== PAGES ===================== */
 .page{display:none; animation:fadeIn .35s ease;}
 .page.active{display:block;}
 @keyframes fadeIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
@@ -106,23 +106,11 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 @keyframes rip{to{transform:scale(3); opacity:0;}}
 
 /* ===================== TOASTS ===================== */
-.toast-wrap{position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:8px; width:90%; max-width:420px;}
+.toast-wrap{position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:999; display:flex; flex-direction:column; gap:8px; width:90%; max-width:420px;}
 .toast{background:var(--surface); border:1px solid var(--border); padding:12px 16px; border-radius:var(--radius-md); box-shadow:var(--shadow-soft); font-size:13.5px; display:flex; align-items:center; gap:10px; animation:slideDown .3s ease;}
 .toast i{color:var(--grad-b);}
 .toast.error i{color:var(--accent);}
 @keyframes slideDown{from{opacity:0; transform:translateY(-16px);} to{opacity:1; transform:translateY(0);}}
-
-/* ===================== AUTH OVERLAY ===================== */
-.overlay{position:fixed; inset:0; background:var(--bg); z-index:300; display:flex; flex-direction:column; justify-content:center; padding:28px;}
-.overlay.hidden{display:none;}
-.auth-logo{text-align:center; font-size:30px; font-weight:800; margin-bottom:6px;}
-.auth-sub{text-align:center; color:var(--text-dim); margin-bottom:28px; font-size:13.5px;}
-.field{margin-bottom:14px;}
-.field label{font-size:12.5px; color:var(--text-dim); margin-bottom:6px; display:block;}
-.field input{width:100%; padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--glass); color:var(--text); font-family:inherit; font-size:14px;}
-.btn-grad{width:100%; padding:15px; border-radius:var(--radius-sm); background:linear-gradient(135deg,var(--grad-a),var(--grad-b)); color:#fff; font-weight:600; font-size:15px; margin-top:6px;}
-.auth-switch{text-align:center; margin-top:18px; font-size:13px; color:var(--text-dim);}
-.auth-switch b{color:var(--grad-b); font-weight:600;}
 
 /* ===================== UPLOAD SHEET ===================== */
 .sheet-backdrop{position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:150; display:none;}
@@ -134,13 +122,13 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 .upload-drop i{font-size:30px; margin-bottom:8px; color:var(--grad-b);}
 .progress-bar{height:8px; background:var(--glass); border-radius:8px; overflow:hidden; margin-top:10px;}
 .progress-fill{height:100%; width:0%; background:linear-gradient(135deg,var(--grad-a),var(--grad-b)); transition:width .2s ease;}
+.btn-grad{width:100%; padding:15px; border-radius:var(--radius-sm); background:linear-gradient(135deg,var(--grad-a),var(--grad-b)); color:#fff; font-weight:600; font-size:15px; margin-top:6px;}
 
 /* ===================== WATCH PAGE ===================== */
 .player-wrap{width:100%; background:#000; position:sticky; top:0; z-index:40;}
 .player-wrap video{width:100%; max-height:56vh; background:#000;}
 .watch-info{padding:14px;}
-.watch-title{font-size:17px; font-weight:700; line-height:1.3; margin-bottom:8px;}
-.watch-meta-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+.watch-meta-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; margin-top:8px;}
 .watch-actions{display:flex; gap:10px;}
 .action-pill{display:flex; align-items:center; gap:6px; padding:9px 15px; border-radius:20px; background:var(--glass); border:1px solid var(--border); font-size:13px; font-weight:500;}
 .action-pill.liked{color:var(--accent); border-color:var(--accent);}
@@ -148,7 +136,7 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 .related-title{font-size:14px; font-weight:600; margin:18px 0 6px; padding:0 2px;}
 
 /* ===================== PROFILE ===================== */
-.profile-header{display:flex; flex-direction:column; align-items:center; padding:34px 20px 20px;}
+.profile-header{display:flex; flex-direction:column; align-items:center; padding:34px 20px 20px; position:relative;}
 .profile-avatar{width:88px; height:88px; border-radius:50%; background:linear-gradient(135deg,var(--grad-a),var(--grad-b)); display:flex; align-items:center; justify-content:center; font-size:34px; font-weight:800; color:#fff; margin-bottom:12px; box-shadow:var(--shadow-soft);}
 .profile-name{font-size:19px; font-weight:700;}
 .profile-email{font-size:12.5px; color:var(--text-dim); margin-top:2px;}
@@ -157,7 +145,64 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 .stat-num{font-size:19px; font-weight:800; background:linear-gradient(135deg,var(--grad-a),var(--grad-b)); -webkit-background-clip:text; background-clip:text; color:transparent;}
 .stat-label{font-size:11px; color:var(--text-dim); margin-top:2px;}
 .section-label{padding:14px 16px 4px; font-size:14px; font-weight:700;}
-.logout-btn{margin:20px 16px; padding:13px; border-radius:var(--radius-sm); border:1px solid var(--accent); color:var(--accent); text-align:center; font-weight:600;}
+
+/* ===================== EARNINGS CARD ===================== */
+.earnings-card{
+  margin:0 12px 16px; border-radius:var(--radius-lg); padding:20px;
+  background:linear-gradient(135deg,var(--grad-a),var(--grad-b));
+  box-shadow:0 10px 30px rgba(108,92,231,0.4); color:#fff; position:relative; overflow:hidden;
+}
+.earnings-card::before{content:''; position:absolute; top:-40px; right:-40px; width:140px; height:140px; border-radius:50%; background:rgba(255,255,255,0.08);}
+.earnings-card::after{content:''; position:absolute; bottom:-30px; left:-20px; width:100px; height:100px; border-radius:50%; background:rgba(255,255,255,0.06);}
+.earnings-label{font-size:12px; opacity:0.85; font-weight:500; position:relative; z-index:1;}
+.earnings-amount{font-size:32px; font-weight:800; margin:4px 0 2px; position:relative; z-index:1;}
+.earnings-sub{font-size:11.5px; opacity:0.75; position:relative; z-index:1;}
+.progress-ring-wrap{display:flex; align-items:center; gap:14px; margin-top:16px; position:relative; z-index:1;}
+.progress-track{flex:1; height:8px; background:rgba(255,255,255,0.25); border-radius:8px; overflow:hidden;}
+.progress-inner{height:100%; background:#fff; border-radius:8px; transition:width .6s ease;}
+.progress-pct{font-size:12px; font-weight:700; white-space:nowrap;}
+.withdraw-btn{
+  margin-top:14px; width:100%; padding:12px; border-radius:var(--radius-sm);
+  background:rgba(255,255,255,0.2); border:1.5px solid rgba(255,255,255,0.4);
+  color:#fff; font-weight:600; font-size:14px; backdrop-filter:blur(10px);
+  position:relative; z-index:1;
+}
+.withdraw-btn:disabled{opacity:0.55; cursor:not-allowed;}
+
+/* ===================== SETTINGS SIDEBAR ===================== */
+.settings-overlay{position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; display:none;}
+.settings-overlay.show{display:block; animation:fadeIn .25s ease;}
+.settings-panel{
+  position:fixed; right:0; top:0; bottom:0; width:280px; max-width:88vw;
+  background:var(--surface); border-left:1px solid var(--border);
+  z-index:201; transform:translateX(100%); transition:transform .35s cubic-bezier(.2,.9,.3,1);
+  display:flex; flex-direction:column; overflow-y:auto;
+}
+.settings-panel.show{transform:translateX(0);}
+.settings-panel-head{padding:20px 18px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;}
+.settings-panel-head h3{font-size:17px; font-weight:700;}
+.settings-item{display:flex; align-items:center; gap:14px; padding:16px 18px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .15s;}
+.settings-item:hover{background:var(--glass);}
+.settings-item i{width:24px; text-align:center; font-size:16px; color:var(--grad-b);}
+.settings-item .si-label{font-size:14px; font-weight:500;}
+.settings-item .si-sub{font-size:11.5px; color:var(--text-dim); margin-top:2px;}
+.settings-item.danger i,.settings-item.danger .si-label{color:var(--accent);}
+
+/* ===================== WITHDRAW SHEET ===================== */
+.withdraw-sheet{z-index:210;}
+.field{margin-bottom:14px;}
+.field label{font-size:12.5px; color:var(--text-dim); margin-bottom:6px; display:block; font-weight:500;}
+.field input{width:100%; padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--glass); color:var(--text); font-family:inherit; font-size:14px;}
+.field input:focus{outline:none; border-color:var(--grad-b);}
+.info-box{background:var(--glass); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; font-size:12.5px; color:var(--text-dim); margin-bottom:14px; line-height:1.6;}
+.info-box b{color:var(--text);}
+
+/* ===================== REQUEST LIST ===================== */
+.req-item{background:var(--glass); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; margin-bottom:10px; display:flex; align-items:center; gap:10px;}
+.req-badge{font-size:10px; padding:3px 9px; border-radius:10px; font-weight:600; white-space:nowrap;}
+.req-badge.pending{background:rgba(255,159,67,0.15); color:#FF9F43;}
+.req-badge.approved{background:rgba(46,213,115,0.15); color:var(--good);}
+.req-badge.rejected{background:rgba(255,75,110,0.15); color:var(--accent);}
 
 .empty-state{text-align:center; padding:60px 24px; color:var(--text-dim);}
 .empty-state i{font-size:38px; margin-bottom:12px; opacity:.6;}
@@ -167,7 +212,6 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
 </head>
 <body data-theme="dark">
 
-<!-- ===================== TOAST CONTAINER ===================== -->
 <div class="toast-wrap" id="toastWrap"></div>
 
 <!-- ===================== TOP BAR ===================== -->
@@ -175,6 +219,7 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
   <div class="brand"><div class="dot"></div><span class="grad">StreamHub</span></div>
   <div class="top-actions">
     <button class="icon-btn ripple" id="themeToggle"><i class="fa-solid fa-moon"></i></button>
+    <button class="icon-btn ripple" id="settingsBtn" style="display:none;"><i class="fa-solid fa-gear"></i></button>
   </div>
 </div>
 
@@ -190,7 +235,7 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
   <div class="player-wrap"><video id="mainPlayer" controls playsinline></video></div>
   <div class="watch-info">
     <div class="card-sub" id="watchMeta" style="font-size:14px;"></div>
-    <div class="watch-meta-row" style="margin-top:12px;">
+    <div class="watch-meta-row">
       <div class="watch-actions">
         <button class="action-pill ripple" id="likeBtn"><i class="fa-regular fa-heart"></i><span id="likeCount">0</span></button>
         <button class="action-pill ripple" id="shareBtn"><i class="fa-solid fa-share"></i>Share</button>
@@ -210,13 +255,28 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
   <div class="profile-header">
     <div class="profile-avatar" id="profAvatar">U</div>
     <div class="profile-name" id="profName">Username</div>
-    <div class="profile-email" id="profEmail">email@example.com</div>
+    <div class="profile-email" id="profEmail">—</div>
   </div>
   <div class="stats-row">
     <div class="stat-box"><div class="stat-num" id="statVideos">0</div><div class="stat-label">Videos</div></div>
     <div class="stat-box"><div class="stat-num" id="statViews">0</div><div class="stat-label">Views</div></div>
     <div class="stat-box"><div class="stat-num" id="statLikes">0</div><div class="stat-label">Likes</div></div>
   </div>
+
+  <!-- Earnings Card -->
+  <div class="earnings-card" id="earningsCard">
+    <div class="earnings-label">💰 Total Earnings</div>
+    <div class="earnings-amount" id="earningsAmount">৳0.00</div>
+    <div class="earnings-sub" id="earningsSub">0 / 100,000 real views</div>
+    <div class="progress-ring-wrap">
+      <div class="progress-track"><div class="progress-inner" id="earningsProgress" style="width:0%"></div></div>
+      <div class="progress-pct" id="earningsPct">0%</div>
+    </div>
+    <button class="withdraw-btn ripple" id="withdrawBtn" disabled>
+      <i class="fa-solid fa-money-bill-wave"></i> Withdraw via bKash
+    </button>
+  </div>
+
   <div class="section-label">Your Videos</div>
   <div class="feed" id="profileFeed"></div>
   <div class="card-sub" style="text-align:center; margin:20px 16px;">Signed in automatically via Telegram</div>
@@ -227,6 +287,27 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
   <div class="nav-item active" data-page="home"><i class="fa-solid fa-house"></i>Home</div>
   <div class="nav-upload ripple" id="navUploadBtn"><i class="fa-solid fa-plus"></i></div>
   <div class="nav-item" data-page="profile"><i class="fa-solid fa-circle-user"></i>Profile</div>
+</div>
+
+<!-- ===================== SETTINGS SIDEBAR ===================== -->
+<div class="settings-overlay" id="settingsOverlay"></div>
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-panel-head">
+    <h3>Settings</h3>
+    <button class="icon-btn" id="closeSettings"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="settings-item" id="menuWithdraw">
+    <i class="fa-solid fa-money-bill-transfer"></i>
+    <div><div class="si-label">Withdraw Earnings</div><div class="si-sub">Request bKash payout</div></div>
+  </div>
+  <div class="settings-item" id="menuMyRequests">
+    <i class="fa-solid fa-clock-rotate-left"></i>
+    <div><div class="si-label">My Requests</div><div class="si-sub">View withdrawal history</div></div>
+  </div>
+  <div class="settings-item" onclick="document.getElementById('themeToggle').click();">
+    <i class="fa-solid fa-circle-half-stroke"></i>
+    <div><div class="si-label">Toggle Theme</div><div class="si-sub">Light / Dark mode</div></div>
+  </div>
 </div>
 
 <!-- ===================== UPLOAD SHEET ===================== -->
@@ -244,10 +325,30 @@ button{font-family:inherit; border:none; cursor:pointer; background:none; color:
   <button class="btn-grad ripple" id="submitUploadBtn">Upload</button>
 </div>
 
+<!-- ===================== WITHDRAW SHEET ===================== -->
+<div class="sheet-backdrop" id="wdBackdrop"></div>
+<div class="sheet withdraw-sheet" id="withdrawSheet">
+  <div class="sheet-handle"></div>
+  <h3 style="margin-bottom:4px;"><i class="fa-solid fa-money-bill-wave" style="color:var(--good);"></i> Withdraw via bKash</h3>
+  <p class="card-sub" style="margin-bottom:16px;">Fill in your details to request a payout.</p>
+  <div class="info-box" id="wdInfoBox">Loading...</div>
+  <div class="field"><label>bKash Account Number</label><input type="tel" id="wdNumber" placeholder="01XXXXXXXXX"></div>
+  <div class="field"><label>Account Holder Name</label><input type="text" id="wdName" placeholder="Your full name"></div>
+  <div class="field"><label>Amount (৳)</label><input type="number" id="wdAmount" placeholder="0.00" readonly></div>
+  <button class="btn-grad ripple" id="submitWdBtn">Submit Withdrawal Request</button>
+</div>
+
+<!-- ===================== MY REQUESTS SHEET ===================== -->
+<div class="sheet-backdrop" id="reqBackdrop"></div>
+<div class="sheet" id="reqSheet">
+  <div class="sheet-handle"></div>
+  <h3 style="margin-bottom:16px;"><i class="fa-solid fa-clock-rotate-left" style="color:var(--grad-b);"></i> Withdrawal History</h3>
+  <div id="reqList"><div class="empty-state"><i class="fa-solid fa-inbox"></i><div>No requests yet.</div></div></div>
+</div>
+
 <script>
 /* ============================================================
    FIREBASE CONFIG
-   Replace with your own Firebase project credentials.
    ============================================================ */
 const firebaseConfig = {
   apiKey: "AIzaSyAzJJmgHTCvqxkhC1UGocJsLUzPmu3pkUw",
@@ -264,16 +365,17 @@ const db = firebase.database();
 /* ============================================================
    STATE
    ============================================================ */
-let uid = null;            
+let uid = null;
 let currentUserData = null;
-let tgUser = null;        
+let tgUser = null;
 let settings = {};
-let feedCache = [];       
+let feedCache = [];
 let feedCursor = 0;
 const PAGE_SIZE = 8;
 let feedLoading = false;
 let feedEndReached = false;
 let activeVideoId = null;
+let isTelegramMiniApp = false;
 
 /* ============================================================
    UTIL
@@ -284,7 +386,7 @@ function toast(msg, isError){
   t.className = 'toast' + (isError ? ' error' : '');
   t.innerHTML = `<i class="fa-solid ${isError?'fa-circle-exclamation':'fa-circle-check'}"></i><span>${msg}</span>`;
   wrap.appendChild(t);
-  setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateY(-10px)'; t.style.transition='.3s'; setTimeout(()=>t.remove(),300); }, 3000);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateY(-10px)'; t.style.transition='.3s'; setTimeout(()=>t.remove(),300); }, 3500);
 }
 function timeAgo(ts){
   const s = Math.floor((Date.now()-ts)/1000);
@@ -301,6 +403,8 @@ function fmtNum(n){
   return String(n);
 }
 function initials(name){ return (name||'U').trim().charAt(0).toUpperCase(); }
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
 document.addEventListener('click', e=>{
   const btn = e.target.closest('.ripple');
   if(!btn) return;
@@ -332,6 +436,8 @@ function showPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.page===name));
+  // Show settings button only on profile page
+  document.getElementById('settingsBtn').style.display = name==='profile' ? 'flex' : 'none';
   window.scrollTo({top:0, behavior:'smooth'});
   if(name==='profile') loadProfile();
 }
@@ -340,7 +446,29 @@ document.querySelectorAll('.nav-item').forEach(n=>{
 });
 
 /* ============================================================
-   IDENTITY 
+   SETTINGS PANEL
+   ============================================================ */
+document.getElementById('settingsBtn').addEventListener('click', ()=>{
+  document.getElementById('settingsOverlay').classList.add('show');
+  document.getElementById('settingsPanel').classList.add('show');
+});
+document.getElementById('settingsOverlay').addEventListener('click', closeSettings);
+document.getElementById('closeSettings').addEventListener('click', closeSettings);
+function closeSettings(){
+  document.getElementById('settingsOverlay').classList.remove('show');
+  document.getElementById('settingsPanel').classList.remove('show');
+}
+document.getElementById('menuWithdraw').addEventListener('click', ()=>{
+  closeSettings();
+  openWithdrawSheet();
+});
+document.getElementById('menuMyRequests').addEventListener('click', ()=>{
+  closeSettings();
+  openReqSheet();
+});
+
+/* ============================================================
+   IDENTITY
    ============================================================ */
 function getTelegramUser(){
   try{
@@ -358,34 +486,32 @@ function localGuestId(){
   if(!gid){ gid = 'guest_' + Math.random().toString(36).slice(2,10); localStorage.setItem('streamhub_guest_id', gid); }
   return gid;
 }
-
 async function setupIdentity(){
   tgUser = getTelegramUser();
-  const usingTelegram = !!tgUser;
-  uid = usingTelegram ? ('tg_' + tgUser.id) : localGuestId();
-  const displayName = usingTelegram
+  isTelegramMiniApp = !!tgUser;
+  uid = isTelegramMiniApp ? ('tg_' + tgUser.id) : localGuestId();
+  const displayName = isTelegramMiniApp
     ? (tgUser.username || [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') || ('User' + tgUser.id))
     : ('Guest' + uid.slice(-4));
-
   try{
     const snap = await db.ref('users/'+uid).once('value');
     currentUserData = snap.val();
     if(currentUserData && currentUserData.banned){
-      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;text-align:center;color:var(--text);">Your account has been banned by an admin.</div>';
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;text-align:center;color:var(--text);">Your account has been banned.</div>';
       return;
     }
     if(!currentUserData){
       currentUserData = {
-        username: displayName, telegramId: usingTelegram ? tgUser.id : null,
+        username: displayName, telegramId: isTelegramMiniApp ? tgUser.id : null,
         createdAt: Date.now(), banned:false, role:'user',
-        totalVideos:0, totalViews:0, totalLikes:0
+        totalVideos:0, totalViews:0, totalLikes:0, realViews:0, earnings:0
       };
       await db.ref('users/'+uid).set(currentUserData);
     }
   }catch(err){
-    console.error('StreamHub: could not load profile —', err.message);
-    toast('Could not connect to the database: ' + err.message, true);
-    currentUserData = currentUserData || { username: displayName, totalVideos:0, totalViews:0, totalLikes:0 };
+    console.error('StreamHub:', err.message);
+    toast('Could not connect to database: ' + err.message, true);
+    currentUserData = currentUserData || { username: displayName, totalVideos:0, totalViews:0, realViews:0, earnings:0 };
   }
   initApp();
 }
@@ -402,6 +528,8 @@ function initApp(){
   db.ref('settings').on('value', snap=>{
     settings = snap.val() || {};
     document.getElementById('uploadsDisabledBanner').classList.toggle('hidden', settings.uploadsEnabled !== false);
+    // Inject Adsgram SDK dynamically if code is set and we are in Telegram
+    injectAdsgramIfNeeded();
     if(!deepLinkHandled){
       deepLinkHandled = true;
       try{
@@ -414,10 +542,58 @@ function initApp(){
   loadFeed();
   window.addEventListener('scroll', ()=>{
     if(document.getElementById('page-home').classList.contains('active')){
-      if(window.innerHeight + window.scrollY > document.body.offsetHeight - 600){
-        loadFeed();
-      }
+      if(window.innerHeight + window.scrollY > document.body.offsetHeight - 600) loadFeed();
     }
+  });
+}
+
+/* ============================================================
+   ADS — Adsgram (Telegram) + Monetag (web fallback)
+   Logic:
+   - If running inside Telegram Mini App AND admin has set adsgramBlockId →
+     use Adsgram SDK
+   - Otherwise (normal browser or Adsgram not configured) →
+     use Monetag (show_11534532) if adsEnabled
+   ============================================================ */
+let adsgramController = null;
+
+function injectAdsgramIfNeeded(){
+  if(!isTelegramMiniApp) return;
+  if(!settings.adsEnabled) return;
+  if(!settings.adsgramBlockId) return;
+  if(document.getElementById('adsgram-sdk')) return; // already injected
+  const script = document.createElement('script');
+  script.id = 'adsgram-sdk';
+  script.async = true;
+  script.src = 'https://sad.adsgram.ai/js/sad.min.js';
+  script.onload = ()=>{
+    try{
+      adsgramController = window.Adsgram
+        ? window.Adsgram.init({ blockId: settings.adsgramBlockId })
+        : null;
+    }catch(e){ adsgramController = null; }
+  };
+  document.head.appendChild(script);
+}
+
+function showAd(){
+  return new Promise((resolve)=>{
+    if(!settings.adsEnabled){ resolve(); return; }
+
+    // Try Adsgram first (Telegram Mini App)
+    if(isTelegramMiniApp && adsgramController){
+      adsgramController.show().then(resolve).catch(resolve);
+      return;
+    }
+
+    // Fallback: Monetag
+    if(typeof show_11534532 === 'function'){
+      show_11534532().then(resolve).catch(resolve);
+      return;
+    }
+
+    // No ad available — proceed
+    resolve();
   });
 }
 
@@ -443,7 +619,7 @@ async function loadFeed(){
   document.getElementById('feedLoader').style.display = 'block';
   await ensureVideosCached();
   const slice = feedCache.slice(feedCursor, feedCursor+PAGE_SIZE);
-  if(slice.length === 0 && feedCursor === 0){
+  if(slice.length===0 && feedCursor===0){
     document.getElementById('feed').innerHTML = `<div class="empty-state"><i class="fa-solid fa-video-slash"></i><div>No videos yet. Be the first to upload!</div></div>`;
   }
   slice.forEach(v=> document.getElementById('feed').appendChild(renderCard(v)));
@@ -461,57 +637,79 @@ function renderCard(v){
       <div class="avatar">${initials(v.username)}</div>
       <div class="card-meta">
         <div class="card-title">${escapeHtml(v.username||'user')}</div>
-        <div class="card-sub">${fmtNum(v.views)} views • ${timeAgo(v.createdAt)}</div>
+        <div class="card-sub">${fmtNum(v.realViews||v.views||0)} views • ${timeAgo(v.createdAt)}</div>
       </div>
     </div>`;
   card.addEventListener('click', ()=> openVideo(v.id));
   return card;
 }
-function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
 
-function playAdThenOpen(id){
-  if(!settings.adsEnabled){ actuallyOpenVideo(id); return; }
-  if(typeof show_11534532 === 'function'){
-    show_11534532().then(()=>{
-      actuallyOpenVideo(id);
-    }).catch(()=>{
-      actuallyOpenVideo(id);
-    });
-  } else {
-    actuallyOpenVideo(id);
+/* ============================================================
+   UNIQUE VIEW TRACKING
+   A view is only counted once per uid per video.
+   Stored at: videoViews/{videoId}/{uid} = true
+   This prevents the same user from inflating counts.
+   ============================================================ */
+async function recordUniqueView(videoId, uploaderId){
+  if(!uid) return false;
+  const viewRef = db.ref(`videoViews/${videoId}/${uid}`);
+  const snap = await viewRef.once('value');
+  if(snap.exists()) return false; // already viewed
+  // Mark view
+  await viewRef.set(true);
+  // Increment video's realViews counter
+  await db.ref('videos/'+videoId+'/realViews').transaction(cur=>(cur||0)+1);
+  // Increment uploader's realViews for earnings calculation
+  if(uploaderId){
+    await db.ref('users/'+uploaderId+'/realViews').transaction(cur=>(cur||0)+1);
+    // Recalculate earnings
+    const uSnap = await db.ref('users/'+uploaderId).once('value');
+    const uData = uSnap.val() || {};
+    const realViews = (uData.realViews||0) + 1;
+    const ratePerLakh = settings.payoutPerLakhViews || 0;
+    const earned = Math.floor(realViews / 100000) * ratePerLakh;
+    await db.ref('users/'+uploaderId+'/earnings').set(earned);
   }
+  return true; // new view counted
 }
 
 /* ============================================================
    WATCH PAGE
    ============================================================ */
 function openVideo(id){
-  playAdThenOpen(id);
+  showAd().then(()=> actuallyOpenVideo(id));
 }
 async function actuallyOpenVideo(id){
-  const v = feedCache.find(x=>x.id===id) || (await db.ref('videos/'+id).once('value')).val();
+  let v = feedCache.find(x=>x.id===id);
+  if(!v){
+    const snap = await db.ref('videos/'+id).once('value');
+    v = snap.val();
+    if(v) v = {id,...v};
+  }
   if(!v){ toast('Video not found', true); return; }
   activeVideoId = id;
   showPage('watch');
   const player = document.getElementById('mainPlayer');
   player.src = v.url;
   player.load();
-  document.getElementById('watchMeta').textContent = `${fmtNum(v.views)} views • ${timeAgo(v.createdAt)}`;
+  // Record unique view
+  const isNew = await recordUniqueView(id, v.uploaderId);
+  // Refresh video data to get updated counts
+  const vSnap = await db.ref('videos/'+id).once('value');
+  const fresh = vSnap.val() || v;
+  const displayViews = fresh.realViews || fresh.views || 0;
+  document.getElementById('watchMeta').textContent = `${fmtNum(displayViews)} views • ${timeAgo(v.createdAt)}`;
   document.getElementById('channelAvatar').textContent = initials(v.username);
   document.getElementById('channelName').textContent = v.username || 'user';
-  
-  db.ref('videos/'+id+'/views').transaction(cur=> (cur||0)+1);
-  if(v.uploaderId){ db.ref('users/'+v.uploaderId+'/totalViews').transaction(cur=>(cur||0)+1); }
-  
+  // Like state
   const likesSnap = await db.ref('likes/'+id).once('value');
   const likes = likesSnap.val() || {};
   const likeCount = Object.keys(likes).length;
-  document.getElementById('likeCount').textContent = fmtNum(likeCount);
   const liked = uid && likes[uid];
-  document.getElementById('likeBtn').classList.toggle('liked', !!liked);
+  document.getElementById('likeBtn').className = 'action-pill ripple' + (liked ? ' liked' : '');
   document.getElementById('likeBtn').innerHTML = `<i class="fa-${liked?'solid':'regular'} fa-heart"></i><span id="likeCount">${fmtNum(likeCount)}</span>`;
   document.getElementById('likeBtn').onclick = ()=> toggleLike(id);
-  
+  // Related
   await ensureVideosCached();
   const related = feedCache.filter(x=>x.id!==id).slice(0,10);
   const rf = document.getElementById('relatedFeed');
@@ -519,7 +717,7 @@ async function actuallyOpenVideo(id){
   related.forEach(v2=> rf.appendChild(renderCard(v2)));
 }
 async function toggleLike(id){
-  if(!uid){ toast('Still connecting, try again in a moment', true); return; }
+  if(!uid){ toast('Still connecting, try again', true); return; }
   const ref = db.ref('likes/'+id+'/'+uid);
   const snap = await ref.once('value');
   const btn = document.getElementById('likeBtn');
@@ -527,13 +725,13 @@ async function toggleLike(id){
     await ref.remove();
   } else {
     await ref.set(true);
-    btn.classList.add('liked');
     btn.style.transform = 'scale(1.3)';
     setTimeout(()=> btn.style.transform='scale(1)', 200);
   }
   const likesSnap = await db.ref('likes/'+id).once('value');
   const likes = likesSnap.val() || {};
-  document.getElementById('likeCount').textContent = fmtNum(Object.keys(likes).length);
+  const likeCount = Object.keys(likes).length;
+  document.getElementById('likeCount').textContent = fmtNum(likeCount);
   btn.classList.toggle('liked', !!likes[uid]);
   btn.querySelector('i').className = likes[uid] ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
 }
@@ -553,23 +751,48 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
    ============================================================ */
 async function loadProfile(){
   if(!uid) return;
+  // Re-fetch latest user data
+  try{
+    const uSnap = await db.ref('users/'+uid).once('value');
+    currentUserData = uSnap.val() || currentUserData;
+  }catch(e){}
   document.getElementById('profAvatar').textContent = initials(currentUserData.username);
   document.getElementById('profName').textContent = currentUserData.username;
-  document.getElementById('profEmail').textContent = currentUserData.telegramId ? ('Telegram ID: ' + currentUserData.telegramId) : uid;
+  document.getElementById('profEmail').textContent = currentUserData.telegramId ? ('Telegram ID: '+currentUserData.telegramId) : uid;
+
   const snap = await db.ref('videos').orderByChild('uploaderId').equalTo(uid).once('value');
   const vids = [];
-  let totalViews = 0, totalLikesCount = 0;
+  let totalLikesCount = 0;
   const promises = [];
   snap.forEach(c=>{
     const v = c.val();
     vids.push({id:c.key, ...v});
-    totalViews += (v.views||0);
     promises.push(db.ref('likes/'+c.key).once('value').then(ls=>{ totalLikesCount += Object.keys(ls.val()||{}).length; }));
   });
   await Promise.all(promises);
+
+  const totalRealViews = currentUserData.realViews || 0;
   document.getElementById('statVideos').textContent = fmtNum(vids.length);
-  document.getElementById('statViews').textContent = fmtNum(totalViews);
+  document.getElementById('statViews').textContent = fmtNum(totalRealViews);
   document.getElementById('statLikes').textContent = fmtNum(totalLikesCount);
+
+  // Earnings
+  const ratePerLakh = settings.payoutPerLakhViews || 0;
+  const earnings = currentUserData.earnings || 0;
+  const progressPct = Math.min(100, Math.round((totalRealViews % 100000) / 100000 * 100));
+  const nextMilestone = Math.ceil(totalRealViews / 100000) * 100000 || 100000;
+  document.getElementById('earningsAmount').textContent = `৳${earnings.toFixed(2)}`;
+  document.getElementById('earningsSub').textContent = `${fmtNum(totalRealViews)} / ${fmtNum(nextMilestone)} real views`;
+  document.getElementById('earningsProgress').style.width = progressPct + '%';
+  document.getElementById('earningsPct').textContent = progressPct + '%';
+
+  // Withdraw button: enabled only if user has enough to withdraw (≥1 lakh milestone passed)
+  const canWithdraw = earnings > 0;
+  const withdrawBtn = document.getElementById('withdrawBtn');
+  withdrawBtn.disabled = !canWithdraw;
+  withdrawBtn.onclick = canWithdraw ? openWithdrawSheet : null;
+
+  // Profile feed
   const pf = document.getElementById('profileFeed');
   pf.innerHTML = '';
   if(vids.length===0){
@@ -580,11 +803,81 @@ async function loadProfile(){
 }
 
 /* ============================================================
+   WITHDRAW SYSTEM
+   ============================================================ */
+function openWithdrawSheet(){
+  const earnings = currentUserData.earnings || 0;
+  const ratePerLakh = settings.payoutPerLakhViews || 0;
+  document.getElementById('wdAmount').value = earnings.toFixed(2);
+  document.getElementById('wdInfoBox').innerHTML = `
+    <b>Rate:</b> ৳${ratePerLakh} per 100,000 real views<br>
+    <b>Your earnings:</b> ৳${earnings.toFixed(2)}<br>
+    <b>Status:</b> ${earnings > 0 ? '✅ Eligible to withdraw' : '❌ Reach 100,000 views to unlock'}
+  `;
+  document.getElementById('wdBackdrop').classList.add('show');
+  document.getElementById('withdrawSheet').classList.add('show');
+}
+document.getElementById('wdBackdrop').addEventListener('click', ()=>{
+  document.getElementById('wdBackdrop').classList.remove('show');
+  document.getElementById('withdrawSheet').classList.remove('show');
+});
+document.getElementById('submitWdBtn').addEventListener('click', async ()=>{
+  const number = document.getElementById('wdNumber').value.trim();
+  const name = document.getElementById('wdName').value.trim();
+  const amount = parseFloat(document.getElementById('wdAmount').value) || 0;
+  if(!number || !name){ toast('Please fill in all fields', true); return; }
+  if(amount <= 0){ toast('No earnings available to withdraw', true); return; }
+
+  // Check for existing pending request
+  const existingSnap = await db.ref('withdrawals').orderByChild('uid').equalTo(uid).once('value');
+  let hasPending = false;
+  existingSnap.forEach(c=>{ if(c.val().status==='pending') hasPending=true; });
+  if(hasPending){ toast('You already have a pending withdrawal request', true); return; }
+
+  await db.ref('withdrawals').push({
+    uid, username: currentUserData.username,
+    telegramId: currentUserData.telegramId || null,
+    bkashNumber: number, bkashName: name,
+    amount, status:'pending', createdAt: Date.now()
+  });
+  toast('Withdrawal request submitted!');
+  document.getElementById('wdBackdrop').classList.remove('show');
+  document.getElementById('withdrawSheet').classList.remove('show');
+}); 
+
+async function openReqSheet(){
+  document.getElementById('reqBackdrop').classList.add('show');
+  document.getElementById('reqSheet').classList.add('show');
+  const snap = await db.ref('withdrawals').orderByChild('uid').equalTo(uid).once('value');
+  const reqs = [];
+  snap.forEach(c=> reqs.push({id:c.key,...c.val()}));
+  reqs.sort((a,b)=>b.createdAt-a.createdAt);
+  const list = document.getElementById('reqList');
+  if(reqs.length===0){
+    list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-inbox"></i><div>No requests yet.</div></div>`;
+    return;
+  }
+  list.innerHTML = reqs.map(r=>`
+    <div class="req-item">
+      <div style="flex:1;">
+        <div style="font-weight:600; font-size:14px;">৳${(r.amount||0).toFixed(2)}</div>
+        <div class="card-sub">${r.bkashNumber} • ${timeAgo(r.createdAt)}</div>
+        ${r.adminNote ? `<div class="card-sub" style="color:var(--accent);">${escapeHtml(r.adminNote)}</div>` : ''}
+      </div>
+      <span class="req-badge ${r.status}">${r.status}</span>
+    </div>`).join('');
+}
+document.getElementById('reqBackdrop').addEventListener('click', ()=>{
+  document.getElementById('reqBackdrop').classList.remove('show');
+  document.getElementById('reqSheet').classList.remove('show');
+});
+
+/* ============================================================
    UPLOAD SHEET
    ============================================================ */
 let selectedFile = null;
 document.getElementById('navUploadBtn').addEventListener('click', ()=>{
-  if(!uid){ toast('Still connecting, try again in a moment', true); return; }
+  if(!uid){ toast('Still connecting, try again', true); return; }
   if(settings.uploadsEnabled === false){ toast('Uploads are currently disabled', true); return; }
   document.getElementById('sheetBackdrop').classList.add('show');
   document.getElementById('uploadSheet').classList.add('show');
@@ -601,145 +894,107 @@ document.getElementById('fileInput').addEventListener('change', e=>{
     document.getElementById('dropText').textContent = `${selectedFile.name} (${(selectedFile.size/1024/1024).toFixed(1)} MB)`;
   }
 });
-
-// Capture thumbnail
 function captureThumbnail(file){
   return new Promise((resolve)=>{
     const url = URL.createObjectURL(file);
     const v = document.createElement('video');
-    v.src = url; v.muted = true; v.playsInline = true; v.preload = 'metadata';
-    v.addEventListener('loadeddata', ()=>{
-      v.currentTime = Math.min(0.5, (v.duration||1)/4);
-    });
+    v.src=url; v.muted=true; v.playsInline=true; v.preload='metadata';
+    v.addEventListener('loadeddata', ()=>{ v.currentTime = Math.min(0.5,(v.duration||1)/4); });
     v.addEventListener('seeked', ()=>{
       try{
         const canvas = document.createElement('canvas');
-        canvas.width = v.videoWidth || 320; canvas.height = v.videoHeight || 180;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.7));
+        canvas.width=v.videoWidth||320; canvas.height=v.videoHeight||180;
+        canvas.getContext('2d').drawImage(v,0,0,canvas.width,canvas.height);
+        resolve(canvas.toDataURL('image/jpeg',0.7));
       }catch(err){ resolve(''); }
       URL.revokeObjectURL(url);
     });
     v.addEventListener('error', ()=> resolve(''));
   });
 }
-
 function pickBackend(sizeBytes){
   const mb = sizeBytes/1024/1024;
-  const smallLimit = (settings.smallLimitMB || 20);
-  const mediumLimit = (settings.mediumLimitMB || 200);
-  if(mb <= smallLimit) return 'telegram';
-  if(mb <= mediumLimit) return 'catbox';
+  if(mb <= (settings.smallLimitMB||20)) return 'telegram';
+  if(mb <= (settings.mediumLimitMB||200)) return 'catbox';
   return 'archive';
 }
-
 async function uploadToTelegram(file){
-  const token = settings.telegramBotToken;
-  const chatId = settings.telegramChannelId;
-  if(!token || !chatId) throw new Error('Telegram credentials are not configured by the admin.');
-  const form = new FormData();
-  form.append('chat_id', chatId);
-  form.append('video', file);
-  const res = await fetch(`https://api.telegram.org/bot${token}/sendVideo`, { method:'POST', body: form });
-  const data = await res.json();
-  if(!data.ok) throw new Error('Telegram upload failed: ' + (data.description||'unknown error'));
-  const fileId = data.result.video ? data.result.video.file_id : data.result.document.file_id;
-  const fileRes = await fetch(`https://api.telegram.org/bot${token}/getFile?file_id=${fileId}`);
-  const fileData = await fileRes.json();
+  const token=settings.telegramBotToken, chatId=settings.telegramChannelId;
+  if(!token||!chatId) throw new Error('Telegram credentials not configured.');
+  const form=new FormData(); form.append('chat_id',chatId); form.append('video',file);
+  const res=await fetch(`https://api.telegram.org/bot${token}/sendVideo`,{method:'POST',body:form});
+  const data=await res.json();
+  if(!data.ok) throw new Error('Telegram upload failed: '+(data.description||'unknown'));
+  const fileId=data.result.video?data.result.video.file_id:data.result.document.file_id;
+  const fileRes=await fetch(`https://api.telegram.org/bot${token}/getFile?file_id=${fileId}`);
+  const fileData=await fileRes.json();
   return `https://api.telegram.org/file/bot${token}/${fileData.result.file_path}`;
 }
-
 async function uploadToCatbox(file){
-  const form = new FormData();
-  form.append('reqtype', 'fileupload');
-  if(settings.catboxUserHash) form.append('userhash', settings.catboxUserHash);
-  form.append('fileToUpload', file);
-  
-  // Vercel Rewrite এর মাধ্যমে রিকোয়েস্ট পাঠানো হচ্ছে
-  const proxyUrl = '/api/catbox';
-  
-  const res = await fetch(proxyUrl, { method:'POST', body: form });
-  const text = await res.text();
-  if(!text.startsWith('http')) throw new Error('Catbox upload failed: ' + text);
+  const form=new FormData(); form.append('reqtype','fileupload');
+  if(settings.catboxUserHash) form.append('userhash',settings.catboxUserHash);
+  form.append('fileToUpload',file);
+  const res=await fetch('https://catbox.moe/user/api.php',{method:'POST',body:form});
+  const text=await res.text();
+  if(!text.startsWith('http')) throw new Error('Catbox failed: '+text);
   return text.trim();
 }
-
 async function uploadToArchive(file){
-  const key = settings.archiveAccessKey, secret = settings.archiveSecretKey;
-  if(!key || !secret) throw new Error('Archive.org credentials are not configured by the admin.');
-  const identifier = 'streamhub-' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
-  
-  // Vercel Rewrite এর মাধ্যমে রিকোয়েস্ট পাঠানো হচ্ছে
-  const proxyUrl = `/api/archive/${identifier}/${encodeURIComponent(file.name)}`;
-  
-  const res = await fetch(proxyUrl, {
-    method: 'PUT',
-    headers: {
-      'authorization': `LOW ${key}:${secret}`,
-      'x-archive-meta-title': identifier,
-      'x-archive-auto-make-bucket': '1'
-    },
-    body: file
-  });
-  if(!res.ok) throw new Error('Archive.org upload failed (status ' + res.status + ').');
-  return `https://s3.us.archive.org/${identifier}/${encodeURIComponent(file.name)}`;
+  const key=settings.archiveAccessKey, secret=settings.archiveSecretKey;
+  if(!key||!secret) throw new Error('Archive.org credentials not configured.');
+  const identifier='streamhub-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);
+  const uploadUrl=`https://s3.us.archive.org/${identifier}/${encodeURIComponent(file.name)}`;
+  const res=await fetch(uploadUrl,{method:'PUT',headers:{authorization:`LOW ${key}:${secret}`,'x-archive-meta-title':identifier,'x-archive-auto-make-bucket':'1'},body:file});
+  if(!res.ok) throw new Error('Archive.org upload failed ('+res.status+'). May need server proxy.');
+  return uploadUrl;
 }
-
 document.getElementById('submitUploadBtn').addEventListener('click', async ()=>{
   if(!selectedFile){ toast('Please select a video file', true); return; }
   const maxMB = settings.maxUploadMB || 500;
   if(selectedFile.size/1024/1024 > maxMB){ toast(`File exceeds the ${maxMB}MB limit`, true); return; }
-
-  const progressBar = document.getElementById('progressBar');
-  const progressFill = document.getElementById('progressFill');
-  const statusEl = document.getElementById('uploadStatus');
+  const progressBar=document.getElementById('progressBar');
+  const progressFill=document.getElementById('progressFill');
+  const statusEl=document.getElementById('uploadStatus');
   progressBar.classList.remove('hidden');
-  progressFill.style.width = '10%';
-  statusEl.textContent = 'Generating thumbnail...';
-
+  progressFill.style.width='10%';
+  statusEl.textContent='Generating thumbnail...';
   try{
     const thumbnail = await captureThumbnail(selectedFile);
-    progressFill.style.width = '30%';
+    progressFill.style.width='30%';
     const backend = pickBackend(selectedFile.size);
-    statusEl.textContent = `Uploading via ${backend}...`;
-    progressFill.style.width = '55%';
-
+    statusEl.textContent=`Uploading via ${backend}...`;
+    progressFill.style.width='55%';
     let url;
-    if(backend === 'telegram') url = await uploadToTelegram(selectedFile);
-    else if(backend === 'catbox') url = await uploadToCatbox(selectedFile);
-    else url = await uploadToArchive(selectedFile);
-
-    progressFill.style.width = '85%';
-    statusEl.textContent = 'Saving video details...';
-
-    const newRef = db.ref('videos').push();
+    if(backend==='telegram') url=await uploadToTelegram(selectedFile);
+    else if(backend==='catbox') url=await uploadToCatbox(selectedFile);
+    else url=await uploadToArchive(selectedFile);
+    progressFill.style.width='85%';
+    statusEl.textContent='Saving video details...';
+    const newRef=db.ref('videos').push();
     await newRef.set({
-      url, thumbnail,
-      uploaderId: uid, username: currentUserData.username,
-      views: 0, createdAt: Date.now(),
-      status: settings.autoApprove === false ? 'pending' : 'approved',
+      url, thumbnail, uploaderId:uid, username:currentUserData.username,
+      views:0, realViews:0, createdAt:Date.now(),
+      status: settings.autoApprove===false ? 'pending' : 'approved',
       backend
     });
     await db.ref('users/'+uid+'/totalVideos').transaction(cur=>(cur||0)+1);
-
-    progressFill.style.width = '100%';
-    statusEl.textContent = 'Upload complete!';
+    progressFill.style.width='100%';
+    statusEl.textContent='Upload complete!';
     toast('Video uploaded successfully');
     setTimeout(()=>{
       closeSheet();
-      selectedFile = null;
-      document.getElementById('dropText').textContent = 'Tap to select a video';
+      selectedFile=null;
+      document.getElementById('dropText').textContent='Tap to select a video';
       progressBar.classList.add('hidden');
-      progressFill.style.width = '0%';
-      statusEl.textContent = '';
-      allVideosLoaded = false; feedCursor = 0; feedEndReached = false;
-      document.getElementById('feed').innerHTML = '';
+      progressFill.style.width='0%';
+      statusEl.textContent='';
+      allVideosLoaded=false; feedCursor=0; feedEndReached=false;
+      document.getElementById('feed').innerHTML='';
       loadFeed();
     }, 800);
   }catch(err){
-    statusEl.textContent = '';
-    progressBar.classList.add('hidden');
+    document.getElementById('uploadStatus').textContent='';
+    document.getElementById('progressBar').classList.add('hidden');
     toast(err.message || 'Upload failed', true);
   }
 });
