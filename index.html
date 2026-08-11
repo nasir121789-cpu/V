@@ -549,11 +549,6 @@ function initApp(){
 
 /* ============================================================
    ADS — Adsgram (Telegram) + Monetag (web fallback)
-   Logic:
-   - If running inside Telegram Mini App AND admin has set adsgramBlockId →
-     use Adsgram SDK
-   - Otherwise (normal browser or Adsgram not configured) →
-     use Monetag (show_11534532) if adsEnabled
    ============================================================ */
 let adsgramController = null;
 
@@ -646,23 +641,16 @@ function renderCard(v){
 
 /* ============================================================
    UNIQUE VIEW TRACKING
-   A view is only counted once per uid per video.
-   Stored at: videoViews/{videoId}/{uid} = true
-   This prevents the same user from inflating counts.
    ============================================================ */
 async function recordUniqueView(videoId, uploaderId){
   if(!uid) return false;
   const viewRef = db.ref(`videoViews/${videoId}/${uid}`);
   const snap = await viewRef.once('value');
-  if(snap.exists()) return false; // already viewed
-  // Mark view
+  if(snap.exists()) return false; 
   await viewRef.set(true);
-  // Increment video's realViews counter
   await db.ref('videos/'+videoId+'/realViews').transaction(cur=>(cur||0)+1);
-  // Increment uploader's realViews for earnings calculation
   if(uploaderId){
     await db.ref('users/'+uploaderId+'/realViews').transaction(cur=>(cur||0)+1);
-    // Recalculate earnings
     const uSnap = await db.ref('users/'+uploaderId).once('value');
     const uData = uSnap.val() || {};
     const realViews = (uData.realViews||0) + 1;
@@ -670,7 +658,7 @@ async function recordUniqueView(videoId, uploaderId){
     const earned = Math.floor(realViews / 100000) * ratePerLakh;
     await db.ref('users/'+uploaderId+'/earnings').set(earned);
   }
-  return true; // new view counted
+  return true; 
 }
 
 /* ============================================================
@@ -692,16 +680,13 @@ async function actuallyOpenVideo(id){
   const player = document.getElementById('mainPlayer');
   player.src = v.url;
   player.load();
-  // Record unique view
   const isNew = await recordUniqueView(id, v.uploaderId);
-  // Refresh video data to get updated counts
   const vSnap = await db.ref('videos/'+id).once('value');
   const fresh = vSnap.val() || v;
   const displayViews = fresh.realViews || fresh.views || 0;
   document.getElementById('watchMeta').textContent = `${fmtNum(displayViews)} views • ${timeAgo(v.createdAt)}`;
   document.getElementById('channelAvatar').textContent = initials(v.username);
   document.getElementById('channelName').textContent = v.username || 'user';
-  // Like state
   const likesSnap = await db.ref('likes/'+id).once('value');
   const likes = likesSnap.val() || {};
   const likeCount = Object.keys(likes).length;
@@ -709,7 +694,6 @@ async function actuallyOpenVideo(id){
   document.getElementById('likeBtn').className = 'action-pill ripple' + (liked ? ' liked' : '');
   document.getElementById('likeBtn').innerHTML = `<i class="fa-${liked?'solid':'regular'} fa-heart"></i><span id="likeCount">${fmtNum(likeCount)}</span>`;
   document.getElementById('likeBtn').onclick = ()=> toggleLike(id);
-  // Related
   await ensureVideosCached();
   const related = feedCache.filter(x=>x.id!==id).slice(0,10);
   const rf = document.getElementById('relatedFeed');
@@ -751,7 +735,6 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
    ============================================================ */
 async function loadProfile(){
   if(!uid) return;
-  // Re-fetch latest user data
   try{
     const uSnap = await db.ref('users/'+uid).once('value');
     currentUserData = uSnap.val() || currentUserData;
@@ -776,7 +759,6 @@ async function loadProfile(){
   document.getElementById('statViews').textContent = fmtNum(totalRealViews);
   document.getElementById('statLikes').textContent = fmtNum(totalLikesCount);
 
-  // Earnings
   const ratePerLakh = settings.payoutPerLakhViews || 0;
   const earnings = currentUserData.earnings || 0;
   const progressPct = Math.min(100, Math.round((totalRealViews % 100000) / 100000 * 100));
@@ -786,13 +768,11 @@ async function loadProfile(){
   document.getElementById('earningsProgress').style.width = progressPct + '%';
   document.getElementById('earningsPct').textContent = progressPct + '%';
 
-  // Withdraw button: enabled only if user has enough to withdraw (≥1 lakh milestone passed)
   const canWithdraw = earnings > 0;
   const withdrawBtn = document.getElementById('withdrawBtn');
   withdrawBtn.disabled = !canWithdraw;
   withdrawBtn.onclick = canWithdraw ? openWithdrawSheet : null;
 
-  // Profile feed
   const pf = document.getElementById('profileFeed');
   pf.innerHTML = '';
   if(vids.length===0){
@@ -828,7 +808,6 @@ document.getElementById('submitWdBtn').addEventListener('click', async ()=>{
   if(!number || !name){ toast('Please fill in all fields', true); return; }
   if(amount <= 0){ toast('No earnings available to withdraw', true); return; }
 
-  // Check for existing pending request
   const existingSnap = await db.ref('withdrawals').orderByChild('uid').equalTo(uid).once('value');
   let hasPending = false;
   existingSnap.forEach(c=>{ if(c.val().status==='pending') hasPending=true; });
@@ -934,7 +913,7 @@ async function uploadToCatbox(file){
   const form=new FormData(); form.append('reqtype','fileupload');
   if(settings.catboxUserHash) form.append('userhash',settings.catboxUserHash);
   form.append('fileToUpload',file);
-  const res=await fetch('https://catbox.moe/user/api.php',{method:'POST',body:form});
+  const res=await fetch('/api/catbox',{method:'POST',body:form});
   const text=await res.text();
   if(!text.startsWith('http')) throw new Error('Catbox failed: '+text);
   return text.trim();
@@ -943,10 +922,19 @@ async function uploadToArchive(file){
   const key=settings.archiveAccessKey, secret=settings.archiveSecretKey;
   if(!key||!secret) throw new Error('Archive.org credentials not configured.');
   const identifier='streamhub-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);
-  const uploadUrl=`https://s3.us.archive.org/${identifier}/${encodeURIComponent(file.name)}`;
-  const res=await fetch(uploadUrl,{method:'PUT',headers:{authorization:`LOW ${key}:${secret}`,'x-archive-meta-title':identifier,'x-archive-auto-make-bucket':'1'},body:file});
-  if(!res.ok) throw new Error('Archive.org upload failed ('+res.status+'). May need server proxy.');
-  return uploadUrl;
+  const apiPath=`/api/archive/${identifier}/${encodeURIComponent(file.name)}`;
+  const realUrl=`https://s3.us.archive.org/${identifier}/${encodeURIComponent(file.name)}`;
+  const res=await fetch(apiPath,{
+    method:'PUT',
+    headers:{
+        authorization:`LOW ${key}:${secret}`,
+        'x-archive-meta-title':identifier,
+        'x-archive-auto-make-bucket':'1'
+    },
+    body:file
+  });
+  if(!res.ok) throw new Error('Archive.org upload failed ('+res.status+').');
+  return realUrl;
 }
 document.getElementById('submitUploadBtn').addEventListener('click', async ()=>{
   if(!selectedFile){ toast('Please select a video file', true); return; }
